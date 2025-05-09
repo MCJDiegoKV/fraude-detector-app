@@ -185,7 +185,7 @@ if archivo is not None:
         lineas = archivo.read().decode("utf-8").splitlines()
 
     for linea in lineas:
-    mensaje = extraer_mensaje(linea)
+        mensaje = extraer_mensaje(linea)
     if mensaje:
         resultado = clasificar_mensaje_multilenguaje(mensaje)
 
