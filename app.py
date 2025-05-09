@@ -125,50 +125,62 @@ def guardar_feedback(mensaje, prediccion, etiqueta_real):
             writer = csv.writer(f)
             writer.writerow([mensaje, prediccion, etiqueta_real])
 
+
+if "mostrar_correccion" not in st.session_state:
+    st.session_state.mostrar_correccion = False
+if "resultado_analisis" not in st.session_state:
+    st.session_state.resultado_analisis = ""
+if "explicacion" not in st.session_state:
+    st.session_state.explicacion = []
+
 if st.button("Analizar mensaje"):
     resultado = clasificar_mensaje_multilenguaje(mensaje_usuario)
-    st.markdown(f"**Resultado:** {resultado}")
+    st.session_state.resultado_analisis = resultado
+
     try:
         idioma = detect(mensaje_usuario)
     except:
         idioma = "es"
-    
+
     if idioma == "es":
         clase = 1 if resultado == "🚨 FRAUDE/ESTAFA" else 0
-        explicacion = explicar_clasificacion(
+        st.session_state.explicacion = explicar_clasificacion(
             mensaje_usuario, modelo_es, vectorizer_es, preprocess, clase_objetivo=clase
         )
     elif idioma == "en":
         clase = 1 if resultado == "🚨 FRAUD/SPAM" else 0
-        explicacion = explicar_clasificacion(
+        st.session_state.explicacion = explicar_clasificacion(
             mensaje_usuario, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=clase
         )
     else:
-        explicacion = []
+        st.session_state.explicacion = []
 
-    
-    if explicacion:
-        palabras_clave = [f"• {palabra} (peso: {round(peso, 2)})" for palabra, peso in explicacion]
+if st.session_state.resultado_analisis:
+    st.markdown(f"**Resultado:** {st.session_state.resultado_analisis}")
+
+    if st.session_state.explicacion:
+        palabras_clave = [f"• {palabra} (peso: {round(peso, 2)})" for palabra, peso in st.session_state.explicacion]
         st.markdown("**🔎 Palabras que influyeron en la clasificación:**")
         st.markdown("\n".join(palabras_clave))
 
     st.markdown("¿Fue esta clasificación correcta?")
     col1, col2 = st.columns(2)
-    
+
     if col1.button("✅ Sí, fue correcta"):
         st.success("Gracias por confirmar.")
-        guardar_feedback(mensaje_usuario, resultado, resultado)
-    
+        guardar_feedback(mensaje_usuario, st.session_state.resultado_analisis, st.session_state.resultado_analisis)
+        st.session_state.mostrar_correccion = False
+
     if col2.button("❌ No, fue incorrecta"):
         st.session_state.mostrar_correccion = True
-    
+
     if st.session_state.mostrar_correccion:
-        st.warning("Gracias. ¿Cuál es la clasificación correcta?")
         opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "✅ Safe", "🚨 FRAUD/SPAM"])
         if st.button("Guardar corrección"):
-            guardar_feedback(mensaje_usuario, resultado, opcion)
+            guardar_feedback(mensaje_usuario, st.session_state.resultado_analisis, opcion)
             st.success("Se ha guardado la corrección.")
-            st.session_state.mostrar_correccion = False 
+            st.session_state.mostrar_correccion = False
+
 
 # Análisis por archivo
 st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
