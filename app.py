@@ -103,6 +103,9 @@ st.title("🛡️ Detector de Fraude en Mensajes")
 st.subheader("🔍 Analiza un mensaje individual")
 mensaje_usuario = st.text_area("Escribe el mensaje que deseas analizar")
 
+if "mostrar_correccion" not in st.session_state:
+    st.session_state.mostrar_correccion = False
+
 def guardar_feedback(mensaje, prediccion, etiqueta_real):
     try:
         idioma = detect(mensaje)
@@ -151,20 +154,22 @@ if st.button("Analizar mensaje"):
 
     st.markdown("¿Fue esta clasificación correcta?")
     col1, col2 = st.columns(2)
+    
     if col1.button("✅ Sí, fue correcta"):
         st.success("Gracias por confirmar.")
         guardar_feedback(mensaje_usuario, resultado, resultado)
-    if "mostrar_correccion" not in st.session_state:
-        st.session_state.mostrar_correccion = False
+    
     if col2.button("❌ No, fue incorrecta"):
         st.session_state.mostrar_correccion = True
+    
     if st.session_state.mostrar_correccion:
         st.warning("Gracias. ¿Cuál es la clasificación correcta?")
         opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "✅ Safe", "🚨 FRAUD/SPAM"])
         if st.button("Guardar corrección"):
             guardar_feedback(mensaje_usuario, resultado, opcion)
             st.success("Se ha guardado la corrección.")
-            st.session_state.mostrar_correccion = False
+            st.session_state.mostrar_correccion = False  # Opcional: esconder luego de guardar
+
 
 
 # Análisis por archivo
