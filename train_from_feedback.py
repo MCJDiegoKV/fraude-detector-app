@@ -1,5 +1,11 @@
+import pandas as pd
+import joblib
+import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
+import streamlit as st
+
+feedback_file = "feedback.csv"
 
 def entrenar_modelo_es_desde_feedback():
     if not os.path.exists(feedback_file):
