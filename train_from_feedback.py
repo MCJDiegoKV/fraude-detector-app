@@ -4,8 +4,16 @@ import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import streamlit as st
+import string
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+import nltk
+
+nltk.download('stopwords')
 
 feedback_file = "feedback.csv"
+stop_words = set(stopwords.words('spanish'))
+stemmer = PorterStemmer()
 
 def preprocess(text):
     text = text.lower()
