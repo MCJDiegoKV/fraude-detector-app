@@ -168,9 +168,7 @@ if st.button("Analizar mensaje"):
         if st.button("Guardar corrección"):
             guardar_feedback(mensaje_usuario, resultado, opcion)
             st.success("Se ha guardado la corrección.")
-            st.session_state.mostrar_correccion = False  # Opcional: esconder luego de guardar
-
-
+            st.session_state.mostrar_correccion = False 
 
 # Análisis por archivo
 st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
