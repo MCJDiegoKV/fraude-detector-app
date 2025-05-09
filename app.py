@@ -86,6 +86,22 @@ if st.button("Analizar mensaje"):
     resultado = clasificar_mensaje_multilenguaje(mensaje_usuario)
     st.markdown(f"**Resultado:** {resultado}")
 
+    st.markdown("¿Fue esta clasificación correcta?")
+    col1, col2 = st.columns(2)
+    if col1.button("✅ Sí, fue correcta"):
+        st.success("Gracias por confirmar.")
+        with open(feedback_file, mode='a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([mensaje_usuario, resultado, resultado])
+    if col2.button("❌ No, fue incorrecta"):
+        st.warning("Gracias. ¿Cuál es la clasificación correcta?")
+        opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "🚨 FRAUD/SPAM"])
+        if st.button("Guardar corrección"):
+            with open(feedback_file, mode='a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([mensaje_usuario, resultado, opcion])
+            st.success("Se ha guardado la corrección.")
+
 # --- Análisis por archivo ---
 st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
 
@@ -114,27 +130,6 @@ if archivo is not None:
     df_resultados = pd.DataFrame(mensajes)
     st.success(f"Se analizaron {len(df_resultados)} mensajes.")
     st.dataframe(df_resultados)
-
-    if mensaje_usuario:
-    resultado = clasificar_mensaje_multilenguaje(mensaje_usuario)
-    st.markdown(f"**Resultado:** {resultado}")
-
-    st.markdown("¿Fue esta clasificación correcta?")
-    col1, col2 = st.columns(2)
-    if col1.button("✅ Sí, fue correcta"):
-        st.success("Gracias por confirmar.")
-        # Guardar mensaje con predicción como etiqueta
-        with open(feedback_file, mode='a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([mensaje_usuario, resultado, resultado])
-    if col2.button("❌ No, fue incorrecta"):
-        st.warning("Gracias. ¿Cuál es la clasificación correcta?")
-        opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "🚨 FRAUD/SPAM"])
-        if st.button("Guardar corrección"):
-            with open(feedback_file, mode='a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow([mensaje_usuario, resultado, opcion])
-            st.success("Se ha guardado la corrección.")
 
     csv = df_resultados.to_csv(index=False).encode("utf-8")
     st.download_button("⬇️ Descargar resultados como CSV", data=csv, file_name="resultados_fraude.csv", mime="text/csv")
