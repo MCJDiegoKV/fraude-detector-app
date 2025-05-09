@@ -193,7 +193,6 @@ if st.button("🧠 Reentrenar ambos modelos"):
     entrenar_modelo_es_desde_feedback()
     entrenar_modelo_en_desde_feedback()
 
-    global modelo_en, vectorizer_en, modelo_es, vectorizer_es
     modelo_en = joblib.load('modelo_en.pkl')
     vectorizer_en = joblib.load('vectorizer_en.pkl')
     modelo_es = joblib.load('modelo_es.pkl')
