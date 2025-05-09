@@ -108,6 +108,10 @@ st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
 # Uploader acepta .txt y .zip
 archivo = st.file_uploader("Sube el archivo .txt o .zip exportado de WhatsApp", type=["txt", "zip"])
 
+st.subheader("🔄 Reentrenar modelo en español con retroalimentación")
+if st.button("🧠 Reentrenar ahora"):
+    entrenar_modelo_es_desde_feedback()
+
 if archivo is not None:
     mensajes = []
 
