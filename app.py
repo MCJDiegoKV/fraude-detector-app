@@ -20,7 +20,6 @@ def clasificar_mensaje_multilenguaje(texto):
     texto = texto.strip()
     if len(texto) < 4:
         return "⚠️ Mensaje muy corto para analizar"
-
     try:
         idioma = detect(texto)
     except:
