@@ -154,12 +154,18 @@ if st.button("Analizar mensaje"):
     if col1.button("✅ Sí, fue correcta"):
         st.success("Gracias por confirmar.")
         guardar_feedback(mensaje_usuario, resultado, resultado)
+    if "mostrar_correccion" not in st.session_state:
+        st.session_state.mostrar_correccion = False
     if col2.button("❌ No, fue incorrecta"):
+        st.session_state.mostrar_correccion = True
+    if st.session_state.mostrar_correccion:
         st.warning("Gracias. ¿Cuál es la clasificación correcta?")
         opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "✅ Safe", "🚨 FRAUD/SPAM"])
         if st.button("Guardar corrección"):
             guardar_feedback(mensaje_usuario, resultado, opcion)
             st.success("Se ha guardado la corrección.")
+            st.session_state.mostrar_correccion = False
+
 
 # Análisis por archivo
 st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
