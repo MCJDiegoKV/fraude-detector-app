@@ -185,12 +185,36 @@ if archivo is not None:
         lineas = archivo.read().decode("utf-8").splitlines()
 
     for linea in lineas:
-        mensaje = extraer_mensaje(linea)
-        if mensaje:
-            mensajes.append({
-                "Mensaje": mensaje,
-                "Clasificación": clasificar_mensaje_multilenguaje(mensaje)
-            })
+    mensaje = extraer_mensaje(linea)
+    if mensaje:
+        resultado = clasificar_mensaje_multilenguaje(mensaje)
+
+        try:
+            idioma = detect(mensaje)
+        except:
+            idioma = "es"
+
+        if idioma == "es":
+            clase = 1 if resultado == "🚨 FRAUDE/ESTAFA" else 0
+            explicacion = explicar_clasificacion(
+                mensaje, modelo_es, vectorizer_es, preprocess, clase_objetivo=clase
+            )
+        elif idioma == "en":
+            clase = 1 if resultado == "🚨 FRAUD/SPAM" else 0
+            explicacion = explicar_clasificacion(
+                mensaje, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=clase
+            )
+        else:
+            explicacion = []
+
+        top_palabras = ", ".join([f"{palabra}" for palabra, _ in explicacion]) if explicacion else "No disponible"
+
+        mensajes.append({
+            "Mensaje": mensaje,
+            "Clasificación": resultado,
+            "Palabras Clave": top_palabras
+        })
+
 
     df_resultados = pd.DataFrame(mensajes)
     st.success(f"Se analizaron {len(df_resultados)} mensajes.")
