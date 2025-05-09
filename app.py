@@ -11,6 +11,7 @@ import io
 import csv
 import os
 from langdetect import detect
+import train_from_feedback as
 
 nltk.download('stopwords')
 feedback_file = "feedback.csv"
