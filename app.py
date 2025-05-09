@@ -131,15 +131,18 @@ if st.button("Analizar mensaje"):
         idioma = "es"
     
     if idioma == "es":
+        clase = 1 if resultado == "🚨 FRAUDE/ESTAFA" else 0
         explicacion = explicar_clasificacion(
-            mensaje_usuario, modelo_es, vectorizer_es, preprocess, clase_objetivo=1
+            mensaje_usuario, modelo_es, vectorizer_es, preprocess, clase_objetivo=clase
         )
     elif idioma == "en":
+        clase = 1 if resultado == "🚨 FRAUD/SPAM" else 0
         explicacion = explicar_clasificacion(
-            mensaje_usuario, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=1
+            mensaje_usuario, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=clase
         )
     else:
-        explicacion = []
+    explicacion = []
+
     
     if explicacion:
         palabras_clave = [f"• {palabra} (peso: {round(peso, 2)})" for palabra, peso in explicacion]
