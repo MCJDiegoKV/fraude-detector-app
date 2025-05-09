@@ -82,6 +82,22 @@ def extraer_mensaje(linea):
         return match.group(2).strip()
     return None
 
+def explicar_clasificacion(texto, modelo, vectorizer, preprocess_func, clase_objetivo):
+    try:
+        texto_proc = preprocess_func(texto)
+        texto_vect = vectorizer.transform([texto_proc])
+
+        palabras = vectorizer.get_feature_names_out()
+        log_probs = modelo.feature_log_prob_[clase_objetivo]
+
+        import numpy as np
+        pesos = texto_vect.toarray()[0] * log_probs
+        importantes = [(palabras[i], pesos[i]) for i in range(len(palabras)) if pesos[i] > 0]
+        importantes.sort(key=lambda x: x[1], reverse=True)
+        return importantes[:5]
+    except:
+        return []
+
 # UI app
 st.title("🛡️ Detector de Fraude en Mensajes")
 st.subheader("🔍 Analiza un mensaje individual")
@@ -109,6 +125,27 @@ def guardar_feedback(mensaje, prediccion, etiqueta_real):
 if st.button("Analizar mensaje"):
     resultado = clasificar_mensaje_multilenguaje(mensaje_usuario)
     st.markdown(f"**Resultado:** {resultado}")
+    try:
+        idioma = detect(mensaje_usuario)
+    except:
+        idioma = "es"
+    
+    if idioma == "es":
+        explicacion = explicar_clasificacion(
+            mensaje_usuario, modelo_es, vectorizer_es, preprocess, clase_objetivo=1
+        )
+    elif idioma == "en":
+        explicacion = explicar_clasificacion(
+            mensaje_usuario, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=1
+        )
+    else:
+        explicacion = []
+    
+    if explicacion:
+        palabras_clave = [f"• {palabra} (peso: {round(peso, 2)})" for palabra, peso in explicacion]
+        st.markdown("**🔎 Palabras que influyeron en la clasificación:**")
+        st.markdown("\n".join(palabras_clave))
+
     st.markdown("¿Fue esta clasificación correcta?")
     col1, col2 = st.columns(2)
     if col1.button("✅ Sí, fue correcta"):
