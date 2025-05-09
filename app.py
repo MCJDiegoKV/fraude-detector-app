@@ -17,10 +17,14 @@ nltk.download('stopwords')
 feedback_file = "feedback.csv"
 
 def clasificar_mensaje_multilenguaje(texto):
+    texto = texto.strip()
+    if len(texto) < 4:
+        return "⚠️ Mensaje muy corto para analizar"
+
     try:
         idioma = detect(texto)
     except:
-        return "❌ No se pudo detectar idioma"
+        idioma = "es" 
 
     if idioma == 'es':
         return detectar_fraude_es(texto)
@@ -103,7 +107,7 @@ if st.button("Analizar mensaje"):
                 writer.writerow([mensaje_usuario, resultado, opcion])
             st.success("Se ha guardado la corrección.")
 
-# --- Análisis por archivo ---
+# Análisis por archivo
 st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
 
 # Uploader acepta .txt y .zip
