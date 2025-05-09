@@ -18,7 +18,7 @@ feedback_file = "feedback.csv"
 
 def clasificar_mensaje_multilenguaje(texto):
     texto = texto.strip()
-    if len(texto) < 4:
+    if len(texto) < 6:
         return "⚠️ Mensaje muy corto para analizar"
     try:
         idioma = detect(texto)
