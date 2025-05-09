@@ -141,7 +141,7 @@ if st.button("Analizar mensaje"):
             mensaje_usuario, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=clase
         )
     else:
-    explicacion = []
+        explicacion = []
 
     
     if explicacion:
