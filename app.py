@@ -12,6 +12,7 @@ import csv
 import os
 from langdetect import detect
 from train_from_feedback import entrenar_modelo_es_desde_feedback
+from train_from_feedback import entrenar_modelo_en_desde_feedback
 
 nltk.download('stopwords')
 feedback_file = "feedback.csv"
@@ -86,24 +87,38 @@ st.title("🛡️ Detector de Fraude en Mensajes")
 st.subheader("🔍 Analiza un mensaje individual")
 mensaje_usuario = st.text_area("Escribe el mensaje que deseas analizar")
 
+def guardar_feedback(mensaje, prediccion, etiqueta_real):
+    try:
+        idioma = detect(mensaje)
+    except:
+        idioma = "es"
+    archivo = None
+    if idioma == "es":
+        archivo = "feedback_es.csv"
+    elif idioma == "en":
+        archivo = "feedback_en.csv"
+    if archivo:
+        if not os.path.exists(archivo):
+            with open(archivo, mode='w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(["mensaje", "prediccion", "etiqueta_real"])
+        with open(archivo, mode='a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([mensaje, prediccion, etiqueta_real])
+
 if st.button("Analizar mensaje"):
     resultado = clasificar_mensaje_multilenguaje(mensaje_usuario)
     st.markdown(f"**Resultado:** {resultado}")
-
     st.markdown("¿Fue esta clasificación correcta?")
     col1, col2 = st.columns(2)
     if col1.button("✅ Sí, fue correcta"):
         st.success("Gracias por confirmar.")
-        with open(feedback_file, mode='a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow([mensaje_usuario, resultado, resultado])
+        guardar_feedback(mensaje_usuario, resultado, resultado)
     if col2.button("❌ No, fue incorrecta"):
         st.warning("Gracias. ¿Cuál es la clasificación correcta?")
-        opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "🚨 FRAUD/SPAM"])
+        opcion = st.radio("Selecciona la clase correcta", ["✅ Seguro", "🚨 FRAUDE/ESTAFA", "✅ Safe", "🚨 FRAUD/SPAM"])
         if st.button("Guardar corrección"):
-            with open(feedback_file, mode='a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow([mensaje_usuario, resultado, opcion])
+            guardar_feedback(mensaje_usuario, resultado, opcion)
             st.success("Se ha guardado la corrección.")
 
 # Análisis por archivo
@@ -112,9 +127,11 @@ st.subheader("📂 Analiza un archivo de WhatsApp (.txt)")
 # Uploader acepta .txt y .zip
 archivo = st.file_uploader("Sube el archivo .txt o .zip exportado de WhatsApp", type=["txt", "zip"])
 
-st.subheader("🔄 Reentrenar modelo en español con retroalimentación")
-if st.button("🧠 Reentrenar ahora"):
+st.subheader("🔄 Reentrenar modelos con retroalimentación")
+if st.button("🧠 Reentrenar ambos modelos"):
     entrenar_modelo_es_desde_feedback()
+    entrenar_modelo_en_desde_feedback()
+
 
 if archivo is not None:
     mensajes = []
