@@ -1,0 +1,8 @@
+flask
+streamlit
+pandas
+nltk
+joblib
+scikit-learn
+zipfile36
+langdetect
