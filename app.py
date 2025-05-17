@@ -86,16 +86,23 @@ def explicar_clasificacion(texto, modelo, vectorizer, preprocess_func, clase_obj
     try:
         texto_proc = preprocess_func(texto)
         texto_vect = vectorizer.transform([texto_proc])
-
+        
         palabras = vectorizer.get_feature_names_out()
         log_probs = modelo.feature_log_prob_[clase_objetivo]
-
-        import numpy as np
-        pesos = texto_vect.toarray()[0] * log_probs
-        importantes = [(palabras[i], pesos[i]) for i in range(len(palabras)) if pesos[i] > 0]
+        
+        # Obtiene los índices de palabras que sí aparecen en el mensaje
+        indices_presentes = texto_vect.nonzero()[1]
+        
+        # Calcula pesos solo para esas palabras
+        pesos = texto_vect.toarray()[0][indices_presentes] * log_probs[indices_presentes]
+        
+        # Arma lista de palabras con sus pesos
+        importantes = [(palabras[i], pesos[k]) for k, i in enumerate(indices_presentes)]
         importantes.sort(key=lambda x: x[1], reverse=True)
-        return importantes[:5]
-    except:
+        
+        return importantes[:5]  # Las 5 más influyentes
+    except Exception as e:
+        print("Error en explicar_clasificacion:", e)
         return []
 
 # UI app
@@ -158,8 +165,9 @@ if st.button("Analizar mensaje"):
 if st.session_state.resultado_analisis:
     st.markdown(f"**Resultado:** {st.session_state.resultado_analisis}")
 
-    if st.session_state.explicacion:
-        palabras_clave = [f"• {palabra} (peso: {round(peso, 2)})" for palabra, peso in st.session_state.explicacion]
+    palabras_clave = [f"• {palabra} (peso: {round(peso, 2)})" if peso != 0 else f"• {palabra}" for palabra, peso in st.session_state.explicacion]
+
+    if palabras_clave:
         st.markdown("**🔎 Palabras que influyeron en la clasificación:**")
         st.markdown("\n".join(palabras_clave))
 
@@ -211,34 +219,35 @@ if archivo is not None:
 
     for linea in lineas:
         mensaje = extraer_mensaje(linea)
-    if mensaje:
-        resultado = clasificar_mensaje_multilenguaje(mensaje)
+        if mensaje:
+            resultado = clasificar_mensaje_multilenguaje(mensaje)
 
-        try:
-            idioma = detect(mensaje)
-        except:
-            idioma = "es"
+            try:
+                idioma = detect(mensaje)
+            except:
+                idioma = "es"
 
-        if idioma == "es":
-            clase = 1 if resultado == "🚨 FRAUDE/ESTAFA" else 0
-            explicacion = explicar_clasificacion(
-                mensaje, modelo_es, vectorizer_es, preprocess, clase_objetivo=clase
-            )
-        elif idioma == "en":
-            clase = 1 if resultado == "🚨 FRAUD/SPAM" else 0
-            explicacion = explicar_clasificacion(
-                mensaje, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=clase
-            )
-        else:
-            explicacion = []
+            if idioma == "es":
+                clase = 1 if resultado == "🚨 FRAUDE/ESTAFA" else 0
+                explicacion = explicar_clasificacion(
+                    mensaje, modelo_es, vectorizer_es, preprocess, clase_objetivo=clase
+                )
+            elif idioma == "en":
+                clase = 1 if resultado == "🚨 FRAUD/SPAM" else 0
+                explicacion = explicar_clasificacion(
+                    mensaje, modelo_en, vectorizer_en, preprocess_en, clase_objetivo=clase
+                )
+            else:
+                explicacion = []
 
-        top_palabras = ", ".join([f"{palabra}" for palabra, _ in explicacion]) if explicacion else "No disponible"
+            top_palabras = ", ".join([f"{palabra}" for palabra, _ in explicacion]) if explicacion else "No disponible"
 
-        mensajes.append({
-            "Mensaje": mensaje,
-            "Clasificación": resultado,
-            "Palabras Clave": top_palabras
-        })
+            mensajes.append({
+                "Mensaje": mensaje,
+                "Clasificación": resultado,
+                "Palabras Clave": top_palabras
+            })
+
 
 
     df_resultados = pd.DataFrame(mensajes)
